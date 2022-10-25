@@ -36,3 +36,36 @@ resource "boundary_auth_method_oidc" "provider"{
  signing_algorithms = ["RS256"]
  api_url_prefix = "http://localhost:9200"
 }
+
+
+resource "boundary_managed_group" "boundary-demo-grp"{
+  name =  "boundary-group-demo"
+  description = "An example of OIDC managed group"
+  auth_method_id = boundary_auth_method_oidc.provider.id
+  filter = "\"naitech-boundary-demo\" in \"/token/groups\""
+}
+
+
+resource "boundary_role" "boundary-demo-role"{
+  name = "boundary-demo-role"
+  description = "Assign admin rights"
+  principal_ids = [boundary_managed_group.boundary-demo-grp.id]
+  grant_strings = ["id=*;type=*;actions=*"]
+  scope_id = boundary_scope.boundary_demo.id
+}
+
+resource "boundary_managed_group" "boundary-demo-grp-read"{
+  name =  "boundary-group-demo-read"
+  description = "An example of OIDC managed group"
+  auth_method_id = boundary_auth_method_oidc.provider.id
+  filter = "\"naitech-boundary-demo-read\" in \"/token/groups\""
+}
+
+
+resource "boundary_role" "boundary-demo-role-read"{
+  name = "boundary-demo-role-read"
+  description = "Assign readonly rights"
+  principal_ids = [boundary_managed_group.boundary-demo-grp-read.id]
+  grant_strings = ["id=*;type=*;actions=list,read"]
+  scope_id = boundary_scope.boundary_demo.id
+}
